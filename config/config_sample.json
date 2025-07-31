@@ -1,0 +1,23 @@
+{
+  "model_provider": "claude",
+  "deepseek_api_key": "sk-",
+  "deepseek_model": "deepseek-chat",
+  "anthropic_model": "claude-3-5-sonnet-20241022",
+  "anthropic_api_key": "sk-ant-api03-----",
+  "anthropic_api_key": "sk-ant-api03---",
+  "tpd_api_key": "",
+  "tpd_splits_api_key": "",
+  "tpd_live_recording_api_key": "",
+  "race_sharecode": "01202506191430",
+  "example_share_code_2": "94202506141708",
+  "racing_constants": {
+    "meters_per_horse_length": 2.4,
+    "leader_group_threshold": 1.0,
+    "tailed_off_threshold": 3.0,
+    "max_leader_group": 3,
+    "leader_percentage": 0.25
+  }
+
+}
+
+

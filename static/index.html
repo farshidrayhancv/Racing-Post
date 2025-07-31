@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing Commentary AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .config-form {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input, select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, select:focus {
+            outline: none;
+            background: rgba(255,255,255,1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .status-message {
+            text-align: center;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .horse-updates {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .horse-update {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border-left: 3px solid #2196F3;
+            animation: slideIn 0.3s ease;
+        }
+
+        .horse-name {
+            font-weight: 600;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .commentary {
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .results-container {
+            display: none;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .race-info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .horse-result {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .horse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .position-badge {
+            background: #FFD700;
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏇 Racing Commentary AI</h1>
+            <p>Generate professional horse racing commentary using AI analysis</p>
+        </div>
+
+        <!-- Configuration Form -->
+        <form id="configForm" class="config-form">
+            <div class="form-group">
+                <label for="model_provider">AI Model Provider</label>
+                <select id="model_provider" name="model_provider">
+                    <option value="anthropic">Anthropic Claude</option>
+                    <option value="deepseek">DeepSeek</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="anthropic_api_key">Anthropic API Key</label>
+                    <input type="password" id="anthropic_api_key" name="anthropic_api_key" placeholder="sk-ant-...">
+                </div>
+                <div class="form-group">
+                    <label for="deepseek_api_key">DeepSeek API Key</label>
+                    <input type="password" id="deepseek_api_key" name="deepseek_api_key" placeholder="sk-...">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tpd_api_key">TPD Performance Key</label>
+                    <input type="password" id="tpd_api_key" name="tpd_api_key" placeholder="TPD Performance API Key" required>
+                </div>
+                <div class="form-group">
+                    <label for="tpd_live_recording_api_key">TPD Recording Key</label>
+                    <input type="password" id="tpd_live_recording_api_key" name="tpd_live_recording_api_key" placeholder="TPD Live Recording API Key" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="race_sharecode">Race Share Code</label>
+                <input type="text" id="race_sharecode" name="race_sharecode" value="01202506191430" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Generate Commentary</button>
+        </form>
+
+        <!-- Progress Section -->
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-header">
+                <h2>🤖 AI Analysis in Progress</h2>
+            </div>
+            
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            
+            <div id="statusMessage" class="status-message">
+                Initializing AI model...
+            </div>
+            
+            <div id="horseUpdates" class="horse-updates"></div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsContainer" class="results-container">
+            <div id="raceInfo" class="race-info">
+                <h2>📊 Analysis Complete</h2>
+            </div>
+            
+            <div id="horseResults"></div>
+            
+            <button onclick="resetForm()" class="submit-btn" style="margin-top: 20px;">
+                Analyze Another Race
+            </button>
+        </div>
+
+        <div id="errorContainer"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        let sessionId = null;
+
+        // Load config values on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('Loading config...');
+                const response = await fetch('/config');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const config = await response.json();
+                console.log('Config loaded:', config);
+                
+                // Pre-fill ALL form fields
+                Object.keys(config).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element && config[key]) {
+                        element.value = config[key];
+                    }
+                });
+                
+                console.log('Form pre-filled successfully');
+                
+            } catch (error) {
+                console.error('Config load failed:', error);
+                document.getElementById('race_sharecode').value = '01202506191430';
+            }
+        });
+
+        document.getElementById('configForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const config = Object.fromEntries(formData.entries());
+            
+            // Validate required fields
+            if (!config.tpd_api_key || !config.tpd_live_recording_api_key || !config.race_sharecode) {
+                showError('Please fill in all required fields');
+                return;
+            }
+            
+            // Hide form and show progress
+            document.querySelector('.config-form').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'block';
+            
+            try {
+                // Start analysis
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                sessionId = data.session_id;
+                
+                // Connect to WebSocket for updates
+                connectWebSocket(sessionId);
+                
+            } catch (error) {
+                showError('Failed to start analysis: ' + error.message);
+                resetForm();
+            }
+        });
+
+        function connectWebSocket(sessionId) {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/${sessionId}`;
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleUpdate(data);
+            };
+            
+            socket.onerror = (error) => {
+                showError('Connection error occurred');
+            };
+        }
+
+        function handleUpdate(data) {
+            switch (data.type) {
+                case 'progress':
+                    updateProgress(data.progress, data.message);
+                    break;
+                case 'horse_complete':
+                    addHorseUpdate(data.horse_name, data.commentary, data.position);
+                    break;
+                case 'horse_error':
+                    addHorseError(data.horse_name, data.error);
+                    break;
+                case 'complete':
+                    showResults(data.results, data.race_info);
+                    break;
+                case 'error':
+                    showError(data.message);
+                    resetForm();
+                    break;
+            }
+        }
+
+        function updateProgress(percentage, message) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('statusMessage').textContent = message;
+        }
+
+        function addHorseUpdate(horseName, commentary, position) {
+            const updatesContainer = document.getElementById('horseUpdates');
+            const update = document.createElement('div');
+            update.className = 'horse-update';
+            update.innerHTML = `
+                <div class="horse-name">${horseName} (Position: ${position})</div>
+                <div class="commentary">${commentary}</div>
+            `;
+            updatesContainer.appendChild(update);
+            updatesContainer.scrollTop = updatesContainer.scrollHeight;
+        }
+
+        function addHorseError(horseName, error) {
+            const updatesContainer = document.getElementById('horseUpdates');
+            const update = document.createElement('div');
+            update.className = 'horse-update';
+            update.style.borderLeftColor = '#f44336';
+            update.innerHTML = `
+                <div class="horse-name">${horseName}</div>
+                <div style="color: #ff6b6b;">Error: ${error}</div>
+            `;
+            updatesContainer.appendChild(update);
+        }
+
+        function showResults(results, raceInfo) {
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'block';
+            
+            // Update race info
+            document.getElementById('raceInfo').innerHTML = `
+                <h2>📊 Analysis Complete</h2>
+                <p><strong>Race:</strong> ${raceInfo.sharecode} | <strong>Model:</strong> ${raceInfo.provider}</p>
+                <p><strong>Runners:</strong> ${raceInfo.total_runners}</p>
+            `;
+            
+            // Sort results by position
+            const sortedResults = Object.entries(results).sort((a, b) => a[1].position - b[1].position);
+            
+            const resultsContainer = document.getElementById('horseResults');
+            resultsContainer.innerHTML = '';
+            
+            sortedResults.forEach(([horseName, data]) => {
+                const result = document.createElement('div');
+                result.className = 'horse-result';
+                result.innerHTML = `
+                    <div class="horse-header">
+                        <h3>${horseName}</h3>
+                        <span class="position-badge">${data.position}${getOrdinal(data.position)}</span>
+                    </div>
+                    <div class="commentary">${data.commentary}</div>
+                `;
+                resultsContainer.appendChild(result);
+            });
+        }
+
+        function getOrdinal(n) {
+            const suffixes = ['th', 'st', 'nd', 'rd'];
+            const value = n % 100;
+            return suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0];
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        function resetForm() {
+            document.querySelector('.config-form').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('horseUpdates').innerHTML = '';
+            document.getElementById('progressFill').style.width = '0%';
+            
+            if (socket) {
+                socket.close();
+                socket = null;
+            }
+        }
+
+        // Auto-fill based on model selection
+        document.getElementById('model_provider').addEventListener('change', (e) => {
+            const provider = e.target.value;
+            if (provider === 'anthropic') {
+                document.getElementById('anthropic_api_key').required = true;
+                document.getElementById('deepseek_api_key').required = false;
+            } else {
+                document.getElementById('anthropic_api_key').required = false;
+                document.getElementById('deepseek_api_key').required = true;
+            }
+        });
+    </script>
+</body>
+</html>

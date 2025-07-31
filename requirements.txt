@@ -1,0 +1,11 @@
+# Core AI framework
+pydantic-ai[anthropic]>=0.0.14
+
+# Your existing dependencies (already in your code)
+pandas>=1.5.0
+numpy>=1.21.0
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+openai==1.91
+# Additional utility
+python-dotenv>=0.19.0  # For managing API keys

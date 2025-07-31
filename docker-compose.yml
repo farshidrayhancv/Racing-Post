@@ -1,0 +1,6 @@
+version: '3.8'
+services:
+  racing-server:
+    build: .
+    ports: ["8001:8000"]
+    volumes: [".:/app"]
